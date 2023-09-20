@@ -58,7 +58,7 @@ discriminator_optimizer = tf.keras.optimizers.Adam(1e-4)
 
 data = X.values.copy()
 
-for epoch in range(1000):
+for epoch in range(2000):
     noise = np.random.random(data.shape)
 
     with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
