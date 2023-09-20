@@ -46,10 +46,11 @@ model = tf.keras.Sequential([
 # model = tf.keras.models.Model(inputs=model.inputs, outputs=dist)
 # Do inference.
 model.compile(optimizer=tf.optimizers.Adam(learning_rate=0.01), loss=negloglik)
-history = model.fit(X, y, epochs=100)
+history = model.fit(X, y, epochs=200)
 
 # Profit.
 yhat = model(X.values)
+y_pred = model.predict(synthetic_alloys)
 y_mean = yhat.mean().numpy()
 y_var = yhat.variance().numpy()
 
