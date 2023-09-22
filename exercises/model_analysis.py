@@ -2,64 +2,52 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import numpy as np
 from exercises.regression_models import *
-from exercises.data_preparation import load_data
+from exercises.data_preparation import load_complete_data, load_data
 from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
 import tensorflow as tf
-
+import seaborn as sns
+sns.set_context('talk')
 props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
-prop_ind = 0
-X, y, _ = load_data(col=props[prop_ind])
+prop_ind = 1
+X, y, Z = load_complete_data()
 
+y = y[props[prop_ind]]
 y_max = y.max()
 y = y/y_max
 
 
-# X = pd.concat([X, Z_scaled], axis=1)
+X = pd.concat([X, Z], axis=1)
+r2_scores, r2_scores_train = regular_regression_models(X, y)
+r2_scores[r2_scores < 0] = 0
+r2_scores = r2_scores[r2_scores.sum(axis=1) > 0]
+
+r2_scores_train[r2_scores_train < 0] = 0
+sns.boxplot(r2_scores_train.T)
+plt.xticks(rotation=90)
+plt.title('Training R2 for ' + props[prop_ind])
+plt.savefig(f'figs/Regula_ML_train_{props[prop_ind]}.png', bbox_inches='tight')
+plt.show()
+
+sns.boxplot(r2_scores.T)
+plt.xticks(rotation=90)
+plt.title('Testing R2 for ' + props[prop_ind])
+plt.savefig(f'figs/Regula_ML_test_{props[prop_ind]}.png', bbox_inches='tight')
+plt.show()
+
+print(f'Max R2 for {props[prop_ind]} is {r2_scores.max().max()}')
+
+
+
 # X = Z_scaled.copy()
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 input_shape = X.shape[1:]
 input_data_size = X.shape[0]
 
+model = tf_regression_model(input_shape=input_shape)
+history = model.fit(X_train, y_train, epochs=1000, validation_data=(X_test, y_test))
 
-model = tf.keras.Sequential([
-        tf.keras.layers.Input(shape=input_shape),
-        tf.keras.layers.Dense(1 + 1),
-        tfp.layers.DistributionLambda(
-            lambda t: tfp.distributions.Normal(loc=t[..., :1],
-                                 scale=1e-3 + tf.math.softplus(0.05 * t[..., 1:]))),
-])
-
-
-model = tf.keras.Sequential([
-        tf.keras.layers.Input(shape=input_shape),
-        tf.keras.layers.Dense(256, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(256, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(256, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(256, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(128, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(128, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        # tf.keras.layers.Dense(1),
-        # tfp.layers.DistributionLambda(lambda t: tfp.distributions.Normal(loc=t, scale=1))
-        tfp.layers.DenseVariational(  # Probabilistic dense layer
-            units=1,  # Output dimension
-            make_posterior_fn=tfp.layers.util.default_mean_field_normal_fn(),
-            make_prior_fn=tfp.layers.default_multivariate_normal_fn,
-            kl_weight=1 / input_data_size,
-            activation=None,  # Choose activation function
-        ),
-        tfp.layers.DistributionLambda(lambda t: tfp.distributions.Normal(loc=t, scale=1))
-    ])
-
-negloglik = lambda y, rv_y: -rv_y.log_prob(y)
-model.compile(optimizer='Adam', loss=negloglik)
 
 for i in range(10):
 

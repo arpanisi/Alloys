@@ -28,6 +28,7 @@ for col in Z.columns:
     value_counts = Z[col].value_counts()
     colors = sns.color_palette('Set1', len(value_counts))
     value_counts.plot(kind='bar', color=colors)
+    plt.title(col)
     # plt.xticks(rotation=90)
     if '/' in col:
         col = col.replace('/', '')

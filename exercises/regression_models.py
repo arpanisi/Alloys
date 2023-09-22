@@ -69,7 +69,7 @@ model_names = ["Linear Regression", "Ridge Regression", "Lasso Regression",
                "Bagging Regression", "K-Nearest Neighbors Regression",
                "Kernel Ridge Regression",
                "MLP Regression", "Passive Aggressive Regression", "RANSAC Regression",
-               "Huber Regression", "Histogram-based Gradient Boosting Regression",
+               "Huber Regression", "Histogram-based GBR",
                "Tweedie Regression", "Poisson Regression",
                 "Gaussian Process Regression",
                 "Voting Regression", "Theil-Sen Regression", "Extra Trees Regression"]
