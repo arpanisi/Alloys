@@ -1,11 +1,11 @@
 import pandas as pd
-
+import numpy as np
 
 def load_data(col=None):
     hea_data = pd.read_csv('data/hea_data.csv')
     cols = pd.Series(hea_data.columns)
     chem_cols = cols[30:133]
-    other_cols = cols[(cols[5:7] + cols[16:18] + cols[19] + cols[21:25]).index]
+    other_cols = cols[(cols[6:7] + cols[16:18] + cols[19] + cols[21:25]).index]
 
     elem_comp = hea_data[chem_cols]
     elem_comp_sum = (elem_comp > 0).sum(axis=0) > 50
@@ -28,7 +28,7 @@ def load_data(col=None):
 
 
 def load_complete_data():
-    hea_data = pd.read_csv('data/hea_data.csv')
+    hea_data = pd.read_csv('../data/hea_data.csv')
     cols = pd.Series(hea_data.columns)
     chem_cols = cols[30:133]
     other_cols = cols[(cols[6] + cols[16:18] + cols[19] + cols[21:25]).index]
@@ -51,3 +51,19 @@ def load_complete_data():
     # prop_data = prop_data / prop_max
 
     return elem_comp_filtered, prop_data, other_col_data
+
+
+def synthetic_data(col=None, num_alloys=10000):
+
+    X, _, Z = load_data(col=col)
+
+    synth_alloys = pd.DataFrame(np.random.random(size=(num_alloys, X.shape[1])),
+                                columns=X.columns)
+    synth_alloys = synth_alloys.div(synth_alloys.sum(axis=1), axis=0)
+
+    col_list = np.array([np.random.choice(Z[col_name].unique(), size=num_alloys) for
+                col_name in Z.columns]).T
+    synth_conds = pd.DataFrame(col_list, columns=Z.columns)
+
+    return synth_alloys, synth_conds
+

@@ -127,33 +127,58 @@ def tf_regression_model(input_shape):
     model.compile(optimizer='Adam', loss='mse')
     return model
 
+def posterior_mean_field(kernel_size, bias_size=0, dtype=None):
+  n = kernel_size + bias_size
+  c = np.log(np.expm1(1.))
+  return tf.keras.Sequential([
+      tfp.layers.VariableLayer(2 * n, dtype=dtype),
+      tfp.layers.DistributionLambda(lambda t: tfp.distributions.Independent(
+          tfp.distributions.Normal(loc=t[..., :n],
+                     scale=1e-5 + tf.nn.softplus(c + t[..., n:])),
+          reinterpreted_batch_ndims=1)),
+  ])
 
-def tf_regression_model_with_probability(input_data_size, input_shape):
+def prior_trainable(kernel_size, bias_size=0, dtype=None):
+  n = kernel_size + bias_size
+  return tf.keras.Sequential([
+      tfp.layers.VariableLayer(n, dtype=dtype),
+      tfp.layers.DistributionLambda(lambda t: tfp.distributions.Independent(
+          tfp.distributions.Normal(loc=t, scale=1),
+          reinterpreted_batch_ndims=1)),
+  ])
+
+
+def tf_bnn_regression_model(input_data_size, input_shape):
 
     model = tf.keras.Sequential([
         tf.keras.layers.Input(shape=input_shape),
-        tf.keras.layers.Dense(256, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(256, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(256, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(256, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(128, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        tf.keras.layers.Dense(128, activation='relu', activity_regularizer='l2'),
-        tf.keras.layers.Dropout(0.3),
-        # tf.keras.layers.Dense(1),
-        # tfp.layers.DistributionLambda(lambda t: tfp.distributions.Normal(loc=t, scale=1))
+        tf.keras.layers.Dense(20, activation='relu'),
+        tf.keras.layers.Dense(20, activation='relu'),
+        tf.keras.layers.Dense(20, activation='relu'),
         tfp.layers.DenseVariational(  # Probabilistic dense layer
-            units=1,  # Output dimension
-            make_posterior_fn=tfp.layers.util.default_mean_field_normal_fn(),
-            make_prior_fn=tfp.layers.default_multivariate_normal_fn,
+            units=1 + 1,  # Output dimension
+            make_posterior_fn=posterior_mean_field,
+            make_prior_fn=prior_trainable,
             kl_weight=1 / input_data_size,
-            activation=None,  # Choose activation function
         ),
-        tfp.layers.DistributionLambda(lambda t: tfp.distributions.Normal(loc=t, scale=1))
+        tfp.layers.DistributionLambda(
+            lambda t: tfp.distributions.Normal(loc=t[..., :1],
+                                 scale=1e-3 + tf.math.softplus(0.01 * t[..., 1:]))),
+    ])
+
+    negloglik = lambda y, rv_y: -rv_y.log_prob(y)
+    model.compile(optimizer='Adam', loss=negloglik)
+    return model
+
+
+def tf_prob_regression_model(input_shape):
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=input_shape),
+        tf.keras.layers.Dense(20, activation='relu'),
+        tf.keras.layers.Dense(20, activation='relu'),
+        tf.keras.layers.Dense(2),  # Two outputs for mean and standard deviation
+        tfp.layers.DistributionLambda(lambda t: tfp.distributions.StudentT(df=5, loc=t[..., :1],
+                            scale=1e-3 + tf.math.softplus(t[..., 1:]))),
     ])
 
     negloglik = lambda y, rv_y: -rv_y.log_prob(y)

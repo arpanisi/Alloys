@@ -11,6 +11,7 @@ props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
 prop_ind = 0
 X, y, Z = load_complete_data()
 
+
 synthetic_alloys, synthetic_props, synthetic_Z = generate_synthetic_data(number_of_alloys=1000)
 
 X_total = pd.concat([X, synthetic_alloys], axis=0)
