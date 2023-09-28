@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from exercises.regression_models import tf_prob_regression_model, tf_bnn_regression_model
 
 props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
-prop_ind = 0
+prop_ind = 2
 X, y, Z = load_data(col=props[prop_ind])
 
 std = StandardScaler()
