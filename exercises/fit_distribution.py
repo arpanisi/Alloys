@@ -3,24 +3,30 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 sns.set_context('talk')
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from exercises.data_preparation import load_complete_data, load_data, synthetic_data
 from sklearn.model_selection import train_test_split
 from exercises.regression_models import tf_prob_regression_model, tf_bnn_regression_model
 
 props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
-prop_ind = 2
+prop_ind = 0
 X, y, Z = load_data(col=props[prop_ind])
+Phase = Z['PhaseType']
 
+lbe = LabelEncoder()
 std = StandardScaler()
+Phase_labeled = lbe.fit_transform(Phase)
+Z['PhaseType'] = Phase_labeled
+
 Z_scaled = pd.DataFrame(std.fit_transform(Z),
                         columns=Z.columns, index=Z.index)
 X = pd.concat([X, Z_scaled], axis=1)
 
 #synthetic data generating
-X_synth, Z_synth = synthetic_data(col=props[prop_ind])
-Z_synth_scaled = std.transform(Z_synth)
-X_tot_synth = pd.concat([X_synth, Z_synth], axis=1)
+synthetic_alloys = pd.read_csv('data/synthetic_alloys.csv')
+synthetic_alloys = synthetic_alloys[X.columns]
+synthetic_alloys['PhaseType'] = lbe.transform(synthetic_alloys['PhaseType'])
+synthetic_alloys[Z.columns] = std.transform(synthetic_alloys[Z.columns])
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3,
                                                     random_state=42)
@@ -56,7 +62,7 @@ plt.plot(mean_predictions)
 plt.show()
 
 
-y_pred = model(X_tot_synth.values)
+y_pred = model(synthetic_alloys.values)
 
 # Extract mean and standard deviation from the output distribution
 mean_predictions = y_pred.mean().numpy()
