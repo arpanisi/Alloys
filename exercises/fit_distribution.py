@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from exercises.regression_models import tf_prob_regression_model, tf_bnn_regression_model
 
 props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
-prop_ind = 0
+prop_ind = 2
 X, y, Z = load_data(col=props[prop_ind])
 Phase = Z['PhaseType']
 
@@ -23,7 +23,7 @@ Z_scaled = pd.DataFrame(std.fit_transform(Z),
 X = pd.concat([X, Z_scaled], axis=1)
 
 #synthetic data generating
-synthetic_alloys = pd.read_csv('data/synthetic_alloys.csv')
+synthetic_alloys = pd.read_csv('../data/synthetic_alloys.csv')
 synthetic_alloys = synthetic_alloys[X.columns]
 synthetic_alloys['PhaseType'] = lbe.transform(synthetic_alloys['PhaseType'])
 synthetic_alloys[Z.columns] = std.transform(synthetic_alloys[Z.columns])
@@ -79,6 +79,9 @@ plt.fill_between(np.arange(len(lower_limit)),
 plt.scatter(np.arange(len(lower_limit)), mean_predictions)
 plt.show()
 
+CI_bnn_synth = pd.DataFrame({'Mean': mean_predictions.flatten(), 'CI_lower': lower_limit.flatten(),
+                   'CI_upper': upper_limit.flatten()})
+CI_bnn_synth.to_csv(f'../data/synthetic_prediction_{props[prop_ind]}_bnn.csv')
 # model.save(f'models/combined/bnn_{props[prop_ind]}_09_27_23.h5')
 
 
@@ -104,4 +107,24 @@ plt.fill_between(np.arange(len(y_test)),
 plt.plot(mean_predictions)
 plt.show()
 
+y_pred = model(synthetic_alloys.values)
+
+# Extract mean and standard deviation from the output distribution
+mean_predictions = y_pred.mean().numpy()
+stddev_predictions = y_pred.stddev().numpy()
+
+lower_limit = mean_predictions - 1.96 * stddev_predictions
+upper_limit = mean_predictions + 1.96 * stddev_predictions
+
+# Plot
+
+plt.fill_between(np.arange(len(lower_limit)),
+                 lower_limit.flatten(), upper_limit.flatten(),
+                 color='r', alpha=0.3, label="95% Confidence Interval")
+plt.scatter(np.arange(len(lower_limit)), mean_predictions)
+plt.show()
+
+CI_pnn_synth = pd.DataFrame({'Mean': mean_predictions.flatten(), 'CI_lower': lower_limit.flatten(),
+                   'CI_upper': upper_limit.flatten()})
+CI_pnn_synth.to_csv(f'../data/synthetic_prediction_{props[prop_ind]}_pnn.csv')
 # model.save(f'models/combined/pnn_{props[prop_ind]}_09_27_23.h5')
