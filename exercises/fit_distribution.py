@@ -59,6 +59,8 @@ plt.fill_between(np.arange(len(y_test)),
                  lower_limit.flatten(), upper_limit.flatten(),
                  color='r', alpha=0.3, label="95% Confidence Interval")
 plt.plot(mean_predictions)
+plt.title(props[prop_ind])
+plt.savefig(f'../figs/bnn_regression_{props[prop_ind]}.png', bbox_inches='tight', dpi=300)
 plt.show()
 
 
@@ -81,7 +83,7 @@ plt.show()
 
 CI_bnn_synth = pd.DataFrame({'Mean': mean_predictions.flatten(), 'CI_lower': lower_limit.flatten(),
                    'CI_upper': upper_limit.flatten()})
-CI_bnn_synth.to_csv(f'../data/synthetic_prediction_{props[prop_ind]}_bnn.csv')
+# CI_bnn_synth.to_csv(f'../data/synthetic_prediction_{props[prop_ind]}_bnn.csv')
 # model.save(f'models/combined/bnn_{props[prop_ind]}_09_27_23.h5')
 
 
@@ -105,6 +107,8 @@ plt.fill_between(np.arange(len(y_test)),
                  lower_limit.flatten(), upper_limit.flatten(),
                  color='r', alpha=0.3, label="95% Confidence Interval")
 plt.plot(mean_predictions)
+plt.title(props[prop_ind])
+plt.savefig(f'../figs/pnn_regression_{props[prop_ind]}.png', bbox_inches='tight', dpi=300)
 plt.show()
 
 y_pred = model(synthetic_alloys.values)
@@ -126,5 +130,5 @@ plt.show()
 
 CI_pnn_synth = pd.DataFrame({'Mean': mean_predictions.flatten(), 'CI_lower': lower_limit.flatten(),
                    'CI_upper': upper_limit.flatten()})
-CI_pnn_synth.to_csv(f'../data/synthetic_prediction_{props[prop_ind]}_pnn.csv')
+# CI_pnn_synth.to_csv(f'../data/synthetic_prediction_{props[prop_ind]}_pnn.csv')
 # model.save(f'models/combined/pnn_{props[prop_ind]}_09_27_23.h5')
