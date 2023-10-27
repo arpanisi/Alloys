@@ -6,10 +6,10 @@ sns.set_context('talk')
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from exercises.data_preparation import load_complete_data, load_data, synthetic_data
 from sklearn.model_selection import train_test_split
-from exercises.regression_models import tf_prob_regression_model, tf_bnn_regression_model
+from exercises.regression_models import tf_prob_regression_model, tf_bnn_regression_model, tf_bnn_regression_vi
 
 props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
-prop_ind = 2
+prop_ind = 0
 X, y, Z = load_data(col=props[prop_ind])
 Phase = Z['PhaseType']
 
@@ -60,7 +60,7 @@ plt.fill_between(np.arange(len(y_test)),
                  color='r', alpha=0.3, label="95% Confidence Interval")
 plt.plot(mean_predictions)
 plt.title(props[prop_ind])
-plt.savefig(f'../figs/bnn_regression_{props[prop_ind]}.png', bbox_inches='tight', dpi=300)
+# plt.savefig(f'../figs/bnn_regression_{props[prop_ind]}.png', bbox_inches='tight', dpi=300)
 plt.show()
 
 

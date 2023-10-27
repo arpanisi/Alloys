@@ -161,6 +161,31 @@ def tf_bnn_regression_model(input_data_size, input_shape):
             make_prior_fn=prior_trainable,
             kl_weight=1 / input_data_size,
         ),
+        tfp.layers.DistributionLambda(lambda t: tfp.distributions.StudentT(df=5, loc=t[..., :1],
+                        scale=1e-3 + tf.math.softplus(t[..., 1:]))),
+    ])
+
+    negloglik = lambda y, rv_y: -rv_y.log_prob(y)
+    model.compile(optimizer='Adam', loss=negloglik)
+    return model
+
+
+def tf_bnn_regression_vi(input_data_size, input_shape):
+
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=input_shape),
+        tfp.layers.DenseFlipout(20, activation='relu'),
+        tf.keras.layers.Activation('relu'),
+        tfp.layers.DenseFlipout(20, activation='relu'),
+        tf.keras.layers.Activation('relu'),
+        tfp.layers.DenseFlipout(20, activation='relu'),
+        tf.keras.layers.Activation('relu'),
+        tfp.layers.DenseVariational(  # Probabilistic dense layer
+            units=1 + 1,  # Output dimension
+            make_posterior_fn=posterior_mean_field,
+            make_prior_fn=prior_trainable,
+            kl_weight=1 / input_data_size,
+        ),
         tfp.layers.DistributionLambda(
             lambda t: tfp.distributions.Normal(loc=t[..., :1],
                                  scale=1e-3 + tf.math.softplus(0.01 * t[..., 1:]))),

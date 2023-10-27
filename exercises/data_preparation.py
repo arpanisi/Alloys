@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
+import chemparse
 
 def load_data(col=None):
-    hea_data = pd.read_csv('../data/hea_data.csv')
+    hea_data = pd.read_csv('data/hea_data.csv')
     cols = pd.Series(hea_data.columns)
     chem_cols = cols[30:133]
     other_cols = cols[(cols[5:7] + cols[16:18] + cols[19] + cols[21:25]).index]
@@ -66,4 +67,27 @@ def synthetic_data(col=None, num_alloys=10000):
     synth_conds = pd.DataFrame(col_list, columns=Z.columns)
 
     return synth_alloys, synth_conds
+
+def load_oxidation_data():
+
+    oxidation_data = pd.read_csv('data/oxidation_table3_short (version 1).csv', encoding='latin1')
+    formula_list = oxidation_data['System']
+    elem_comp = chem_form_to_comp(formula_list)
+
+    cols = oxidation_data.columns
+    synth_conds = cols[1:4]
+    synth_data = oxidation_data[synth_conds]
+    y = oxidation_data[cols[-1]]
+
+    return elem_comp, synth_data, y
+
+def chem_form_to_comp(formula_list):
+
+    comps = [chemparse.parse_formula(form) for form in formula_list]
+    chem_comp = pd.DataFrame(comps)
+
+    chem_comp = chem_comp.fillna(0)
+    chem_comp = chem_comp.div(chem_comp.sum(axis=1), axis=0)
+
+    return chem_comp
 
