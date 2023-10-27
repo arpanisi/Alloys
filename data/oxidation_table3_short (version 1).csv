@@ -1,0 +1,43 @@
+System,Initial condition,Phases,Tox,Oxide products,Mass change,,mass change/hr
+CrMo0.5Nb0.5TaTiZr,Annealed,2BCC + Laves ,1000,Complex oxides,120 mg/cm2  for 100 h,,1.2
+Al0.5CrMoNbSi0.3TiV,As-cast,BCC + M5Si3,1300,"(TiCrNbV)O2, Al2O3",202 mg/cm2  for 20 h,,10.1
+Al0.5CrMoNbTi,As-cast, BCC,1300,(TiCrNbV)O2,151 mg/cm2  for 20 h,,7.55
+Al0.5CrMoNbTiV,As-cast,BCC,1300,"(TiCrNbV)O2, Al2O3, VOx",270 mg/cm2  for 20 h,,13.5
+Al0.5CrMoNbV,As-cast,BCC,1300,"CrNbO4, CrVNbO6, Al2O3, VOx",354 mg/cm2  for 20 h,,17.7
+AlCrMoTiW,As-cast,BCC,1000,"Cr2O3  1 mixed (Al,Cr,Ti) oxides",8 mg/cm2  for 40 h,approx,0.2
+AlCrMoNbSi0.05Ti,Annealed,BCC + Laves ,900,Mixture of (TiAlCrNb) oxides,1 mg/cm2  for 48 h,,0.020833333
+AlCrMoNbSi0.05Ti,Annealed,BCC + Laves,1000,Mixture of (TiAlCrNb) oxides (93% rutile,5.3 mg/cm2  for 48 h,,0.110416667
+AlCrMoNbSi0.05Ti,Annealed, BCC + Laves,1100,1 7% corundum) Mixture of (TiAlCrNb) oxides,6.3 mg/cm2  for 48 h,,0.13125
+AlCrMoNbTi,Annealed, BCC + Laves,900,Cr–Al–Ti–Nb oxides,0.8 mg/cm2  for 48 h,,0.016666667
+AlCrMoNbTi,Annealed,BCC + Laves,1000,,9 mg/cm2  for 48 h,,0.1875
+AlCrMoNbTi,Annealed, BCC + Laves,1100,,8 mg/cm2  for 48 h,,0.166666667
+AlCrMoNbTi,Annealed, BCC + Laves,1000,"Complex cr, Al, Nb, Ti, oxides",11 mg/cm2  for 48 h,,0.229166667
+AlCrMoNbTi,Annealed, BCC + Laves,1100,"Complex cr, Al, Nb, Ti, oxides",8 mg/cm2  for 48 h,,0.166666667
+AlCrMoTaTi,Annealed, BCC,1000,,0.7 mg/cm2  for 48 h,,0.014583333
+AlCrMoTaTi,Annealed  ,BCC ,1000,"ZrO2, NbCrO4, Cr2O3",2.9 mg/cm2  for 48 h,,0.060416667
+AlCrMoTiW,As-cast,BCC ,1000,,8.5 mg/cm2  for 48 h ,,0.177083333
+CrNbTiZr,Annealed,BCC + Laves,1000,,120 mg/cm2  for 100 h,,1.2
+CrTaTi0.28VW,MA/SPS, BCC,1000,Complex oxides,30 mg/cm2  for 3 h,,10
+CrTaVW,MA/SPS,BCC + Laves,1000,Complex oxides,75 mg/cm2  for 3 h,,25
+NbTiVZr,Annealed, BCC,1000,"TIO2, TiNb2O7, Nb2Zr6O17",264 mg/cm2  for 100 h,,2.64
+Al0.3HfNbTaTiZr,As-cast,BCC,700,Complex oxides,14 mg/cm2  for 100 h,,0.14
+Al0.3HfNbTaTiZr,As-cast,BCC,900,Complex oxides,30 mg/cm2  for 100 h,,0.3
+Al0.3HfNbTaTiZr,As-cast,BCC,1100,Complex oxides,70 mg/cm2  for 100 h,,0.7
+Al0.3HfNbTaTiZr,As-cast,BCC,1300,Complex oxides,250 mg/cm2  for 10 h ,(complete oxidation),25
+Al0.5HfNbTaTiZr,As-cast,BCC,700,Complex oxides, 14 mg/cm2  for 100 h,,0.14
+Al0.5HfNbTaTiZr,As-cast,BCC,900,Complex oxides,18 mg/cm2  for 100 h,,0.18
+Al0.5HfNbTaTiZr,As-cast,BCC,1100,Complex oxides,65 mg/cm2  for 100 h,,0.65
+Al0.5HfNbTaTiZr,As-cast,BCC,1300,Complex oxides,250 mg/cm2  for 24 h ,(complete oxidation),10.41666667
+Al0.75HfNbTaTiZr,As-cast,BCC,700,Complex oxides, 11 mg/cm2  for 100 h,,0.11
+Al0.75HfNbTaTiZr,As-cast,BCC,900,Complex oxides,17 mg/cm2  for 100 h,,0.17
+Al0.75HfNbTaTiZr,As-cast,BCC,1100,Complex oxides,60 mg/cm2  for 100 h,,0.6
+Al0.75HfNbTaTiZr,As-cast,BCC,1300,Complex oxides,250 mg/cm2  for 50 h ,(complete oxidation),5
+AlHfNbTaTiZr,As-cast,BCC,700,Complex oxides, 10 mg/cm2  for 100 h,,0.1
+AlHfNbTaTiZr,As-cast,BCC,900,Complex oxides,16 mg/cm2  for 100 h,,0.16
+AlHfNbTaTiZr,As-cast,BCC,1100,Complex oxides,52 mg/cm2  for 100 h,,0.52
+AlHfNbTaTiZr,As-cast,BCC,1300,Complex oxides,250 mg/cm2  for 50 h,(complete oxidation),5
+HfNbTaTiZr,As-cast,BCC,700,Complex oxides, 55 mg/cm2  for 100 h,,0.55
+HfNbTaTiZr,As-cast,BCC,900,Complex oxides,54 mg/cm2  for 100 h,,0.54
+HfNbTaTiZr,As-cast,BCC,1100,Complex oxides,76 mg/cm2  for 100 h,,0.76
+HfNbTaTiZr,As-cast,BCC,1300,Complex oxides,250 mg/cm2  for 10 h ,(complete oxidation),25
+Al2Nb3TaTi3Zr,Annealed,BCC,1000,Complex oxides, 51 mg/cm2  for 100 h,,0.51
