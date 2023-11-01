@@ -68,6 +68,7 @@ def synthetic_data(col=None, num_alloys=10000):
 
     return synth_alloys, synth_conds
 
+
 def load_oxidation_data():
 
     oxidation_data = pd.read_csv('data/oxidation_table3_short (version 1).csv', encoding='latin1')
@@ -81,13 +82,16 @@ def load_oxidation_data():
 
     return elem_comp, synth_data, y
 
+
 def chem_form_to_comp(formula_list):
 
     comps = [chemparse.parse_formula(form) for form in formula_list]
-    chem_comp = pd.DataFrame(comps)
+    elem_comp = pd.DataFrame(comps)
 
-    chem_comp = chem_comp.fillna(0)
-    chem_comp = chem_comp.div(chem_comp.sum(axis=1), axis=0)
+    elem_comp_sum = (elem_comp > 0).sum(axis=0) > 0.1 * len(comps)
+    elem_comp_filtered = elem_comp[elem_comp_sum[elem_comp_sum].index]
+    elem_comp_filtered = elem_comp_filtered.fillna(0)
+    elem_comp_filtered = elem_comp_filtered.div(elem_comp_filtered.sum(axis=1), axis=0)
 
-    return chem_comp
+    return elem_comp_filtered
 

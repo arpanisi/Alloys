@@ -11,11 +11,16 @@ from sklearn.metrics import r2_score
 
 elem_comp, synth_data, y = load_oxidation_data()
 
+# Loading Synthetic Alloys
+synthetic_alloys = pd.read_csv('data/synthetic_alloys.csv')
+synthetic_conditions = synthetic_alloys[synth_data.columns]
+
 lbe = LabelEncoder()
 std = StandardScaler()
 
 for col in synth_data.columns[:2]:
-    synth_data[col] = lbe.fit_transform(synth_data[col])
+    synthetic_conditions[col] = lbe.fit_transform(synthetic_conditions[col])
+    synth_data[col] = lbe.transform(synth_data[col])
 
 Z_scaled = pd.DataFrame(std.fit_transform(synth_data),
                         columns=synth_data.columns, index=synth_data.index)
