@@ -12,7 +12,8 @@ from sklearn.metrics import r2_score
 elem_comp, synth_data, y = load_oxidation_data()
 
 # Loading Synthetic Alloys
-synthetic_alloys = pd.read_csv('data/synthetic_alloys.csv')
+synthetic_alloys = pd.read_csv('../data/synthetic_alloys.csv')
+synthetic_comps = synthetic_alloys[elem_comp.columns]
 synthetic_conditions = synthetic_alloys[synth_data.columns]
 
 lbe = LabelEncoder()
@@ -24,8 +25,11 @@ for col in synth_data.columns[:2]:
 
 Z_scaled = pd.DataFrame(std.fit_transform(synth_data),
                         columns=synth_data.columns, index=synth_data.index)
+synth_scaled = pd.DataFrame(std.transform(synthetic_conditions),
+                        columns=synthetic_conditions.columns, index=synthetic_conditions.index)
 
 X = pd.concat([elem_comp, Z_scaled], axis=1)
+synthetic_alloys = pd.concat([synthetic_comps, synth_scaled], axis=1)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3,
                                                     random_state=42)
@@ -60,6 +64,18 @@ plt.title('Bayesian Regression')
 plt.savefig(f'../figs/bnn_regression_oxidation.png', bbox_inches='tight', dpi=300)
 plt.show()
 
+y_pred = model(synthetic_alloys.values)
+# Extract mean and standard deviation from the output distribution
+mean_predictions = y_pred.mean().numpy()
+stddev_predictions = y_pred.stddev().numpy()
+
+lower_limit = mean_predictions - 1.96 * stddev_predictions
+upper_limit = mean_predictions + 1.96 * stddev_predictions
+
+CI_bnn_synth = pd.DataFrame({'Mean': mean_predictions.flatten(), 'CI_lower': lower_limit.flatten(),
+                   'CI_upper': upper_limit.flatten()})
+CI_bnn_synth.to_csv(f'../data/synthetic_prediction_oxidation_bnn.csv')
+
 model = tf_prob_regression_model(input_shape=X.shape[1:])
 model.fit(X_train, y_train, epochs=1000)
 
@@ -83,3 +99,15 @@ plt.plot(mean_predictions)
 plt.title('Probabilistic Regression')
 plt.savefig(f'../figs/pnn_regression_oxidation.png', bbox_inches='tight', dpi=300)
 plt.show()
+
+y_pred = model(synthetic_alloys.values)
+# Extract mean and standard deviation from the output distribution
+mean_predictions = y_pred.mean().numpy()
+stddev_predictions = y_pred.stddev().numpy()
+
+lower_limit = mean_predictions - 1.96 * stddev_predictions
+upper_limit = mean_predictions + 1.96 * stddev_predictions
+
+CI_bnn_synth = pd.DataFrame({'Mean': mean_predictions.flatten(), 'CI_lower': lower_limit.flatten(),
+                   'CI_upper': upper_limit.flatten()})
+CI_bnn_synth.to_csv(f'../data/synthetic_prediction_oxidation_pnn.csv')

@@ -71,7 +71,7 @@ def synthetic_data(col=None, num_alloys=10000):
 
 def load_oxidation_data():
 
-    oxidation_data = pd.read_csv('data/oxidation_table3_short (version 1).csv', encoding='latin1')
+    oxidation_data = pd.read_csv('../data/oxidation_table3_short (version 1).csv', encoding='latin1')
     formula_list = oxidation_data['System']
     elem_comp = chem_form_to_comp(formula_list)
 
