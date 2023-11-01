@@ -4,7 +4,7 @@ import os
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
+props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)', 'oxidation']
 
 # Read the synthetic alloys
 synth_alloys = pd.read_csv('data/synthetic_alloys.csv')
@@ -24,18 +24,26 @@ for prop in props:
 bnn_synth_prop = pd.DataFrame(np.array(means_bnn).T, columns=props)
 pnn_synth_prop = pd.DataFrame(np.array(means_pnn).T, columns=props)
 
+bnn_synth_prop[props[-1]] = -bnn_synth_prop[props[-1]]
+
 # Find the Pareto front (maximization)
 def is_dominated(point, population):
     return np.any(np.all(population >= point, axis=1) & np.any(population > point, axis=1))
 
 pareto_front = []
 data_values = bnn_synth_prop.values
-
+inds = []
 for i, row in enumerate(data_values):
     if not is_dominated(row, data_values):
         pareto_front.append(row)
+        inds.append(i)
 
 pareto_front_df = pd.DataFrame(pareto_front, columns=bnn_synth_prop.columns)
+pareto_front_df[props[-1]] = -pareto_front_df[props[-1]]
+pareto_front_df.to_csv('pareto_front.csv')
+
+pareto_alloys = synth_alloys.iloc[inds]
+pareto_alloys.to_csv('pareto_alloys.csv')
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
