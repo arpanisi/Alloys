@@ -58,20 +58,37 @@ def synthetic_data(col=None, num_alloys=10000):
 
     X, _, Z = load_data(col=col)
 
+    _, synth_data, _ = load_oxidation_data()
+
+    common_cols = set(Z.columns) & set(synth_data.columns)
+    common_values = pd.concat([Z[list(common_cols)], synth_data[list(common_cols)]])
+
+    synthetic_conds_common = [np.random.choice(common_values[col_name].unique(), size=num_alloys) for
+                col_name in common_cols]
+
+    unique_to_Z = set(Z.columns) - common_cols
+    unique_to_ox_data = set(synth_data.columns) - common_cols
+
+    synthetic_conds_Z = [np.random.choice(Z[col_name].unique(), size=num_alloys) for
+                col_name in unique_to_Z]
+    synthetic_conds_ox = [np.random.choice(synth_data[col_name].unique(), size=num_alloys) for
+                col_name in unique_to_ox_data]
+
+    synthetic_conds = np.array(synthetic_conds_common + synthetic_conds_Z + synthetic_conds_ox).T
+    synthesis_cols = list(common_cols) + list(unique_to_Z) + list(unique_to_ox_data)
+
     synth_alloys = pd.DataFrame(np.random.random(size=(num_alloys, X.shape[1])),
                                 columns=X.columns)
     synth_alloys = synth_alloys.div(synth_alloys.sum(axis=1), axis=0)
 
-    col_list = np.array([np.random.choice(Z[col_name].unique(), size=num_alloys) for
-                col_name in Z.columns]).T
-    synth_conds = pd.DataFrame(col_list, columns=Z.columns)
+    synthetic_conds = pd.DataFrame(synthetic_conds, columns=list(synthesis_cols))
 
-    return synth_alloys, synth_conds
+    return synth_alloys, synthetic_conds
 
 
 def load_oxidation_data():
 
-    oxidation_data = pd.read_csv('../data/oxidation_table3_short (version 1).csv', encoding='latin1')
+    oxidation_data = pd.read_csv('data/oxidation_table3_short (version 1).csv', encoding='latin1')
     formula_list = oxidation_data['System']
     elem_comp = chem_form_to_comp(formula_list)
 

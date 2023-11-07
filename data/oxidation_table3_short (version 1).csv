@@ -1,4 +1,4 @@
-System,Initial condition,PhaseType,Tox,Oxide products,Mass change,,mass change/hr
+System,Initial condition,PhaseType,TestTempC,Oxide products,Mass change,,mass change/hr
 CrMo0.5Nb0.5TaTiZr,Annealed,2 BCC+Laves,1000,Complex oxides,120 mg/cm2  for 100 h,,1.2
 Al0.5CrMoNbSi0.3TiV,As-cast,BCC+M55i3,1300,"(TiCrNbV)O2, Al2O3",202 mg/cm2  for 20 h,,10.1
 Al0.5CrMoNbTi,As-cast,BCC,1300,(TiCrNbV)O2,151 mg/cm2  for 20 h,,7.55
