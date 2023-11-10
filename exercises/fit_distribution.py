@@ -7,10 +7,14 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from exercises.data_preparation import load_complete_data, load_data, synthetic_data
 from sklearn.model_selection import train_test_split
 from exercises.regression_models import tf_prob_regression_model, tf_bnn_regression_model, tf_bnn_regression_vi
+from sklearn.metrics import r2_score
+import tensorflow_probability as tfp
 
 props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
 prop_ind = 0
 X, y, Z = load_data(col=props[prop_ind])
+
+top_feat = 10
 Phase = Z['PhaseType']
 
 lbe = LabelEncoder()
@@ -49,9 +53,15 @@ y_pred = model(X_test.values)
 mean_predictions = y_pred.mean().numpy()
 stddev_predictions = y_pred.stddev().numpy()
 
+sorted_stddevs = np.argsort(stddev_predictions.flatten())
+top_alloys_ind = y_test.iloc[sorted_stddevs].index[:top_feat]
+top_alloys = X.loc[top_alloys_ind]
+top_alloys.to_csv(f'../results/bnn_regression_top_std_{props[prop_ind]}.csv')
+
 lower_limit = mean_predictions - 1.96 * stddev_predictions
 upper_limit = mean_predictions + 1.96 * stddev_predictions
 
+print('Testing R2 is:', r2_score(y_test, mean_predictions))
 CI_bnn = pd.DataFrame({'Observed': y_test.values, 'CI_lower': lower_limit.flatten(),
                    'CI_upper': upper_limit.flatten()})
 plt.scatter(np.arange(len(y_test)), y_test)
@@ -60,7 +70,7 @@ plt.fill_between(np.arange(len(y_test)),
                  color='r', alpha=0.3, label="95% Confidence Interval")
 plt.plot(mean_predictions)
 plt.title(props[prop_ind])
-# plt.savefig(f'../figs/bnn_regression_{props[prop_ind]}.png', bbox_inches='tight', dpi=300)
+plt.savefig(f'../figs/bnn_regression_{props[prop_ind]}.png', bbox_inches='tight', dpi=300)
 plt.show()
 
 
@@ -69,6 +79,7 @@ y_pred = model(synthetic_alloys.values)
 # Extract mean and standard deviation from the output distribution
 mean_predictions = y_pred.mean().numpy()
 stddev_predictions = y_pred.stddev().numpy()
+
 
 lower_limit = mean_predictions - 1.96 * stddev_predictions
 upper_limit = mean_predictions + 1.96 * stddev_predictions
@@ -83,8 +94,8 @@ plt.show()
 
 CI_bnn_synth = pd.DataFrame({'Mean': mean_predictions.flatten(), 'CI_lower': lower_limit.flatten(),
                    'CI_upper': upper_limit.flatten()})
-# CI_bnn_synth.to_csv(f'../data/synthetic_prediction_{props[prop_ind]}_bnn.csv')
-# model.save(f'models/combined/bnn_{props[prop_ind]}_09_27_23.h5')
+CI_bnn_synth.to_csv(f'../data/synthetic_prediction_{props[prop_ind]}_bnn.csv')
+# model.save(f'../models/combined/bnn_{props[prop_ind]}_09_27_23.h5', save_traces=False)
 
 
 model = tf_prob_regression_model(input_shape=X.shape[1:])
@@ -97,9 +108,16 @@ y_pred = model(X_test.values)
 mean_predictions = y_pred.mean().numpy()
 stddev_predictions = y_pred.stddev().numpy()
 
+sorted_stddevs = np.argsort(stddev_predictions.flatten())
+top_alloys_ind = y_test.iloc[sorted_stddevs].index[:top_feat]
+top_alloys = X.loc[top_alloys_ind]
+top_alloys.to_csv(f'../results/pnn_regression_top_std_{props[prop_ind]}.csv')
+
 lower_limit = mean_predictions - 1.96 * stddev_predictions
 upper_limit = mean_predictions + 1.96 * stddev_predictions
 
+
+print('Testing R2 is:', r2_score(y_test, mean_predictions))
 CI_pnn = pd.DataFrame({'Observed': y_test.values, 'CI_lower': lower_limit.flatten(),
                    'CI_upper': upper_limit.flatten()})
 plt.scatter(np.arange(len(y_test)), y_test)
@@ -117,6 +135,7 @@ y_pred = model(synthetic_alloys.values)
 mean_predictions = y_pred.mean().numpy()
 stddev_predictions = y_pred.stddev().numpy()
 
+
 lower_limit = mean_predictions - 1.96 * stddev_predictions
 upper_limit = mean_predictions + 1.96 * stddev_predictions
 
@@ -130,5 +149,5 @@ plt.show()
 
 CI_pnn_synth = pd.DataFrame({'Mean': mean_predictions.flatten(), 'CI_lower': lower_limit.flatten(),
                    'CI_upper': upper_limit.flatten()})
-# CI_pnn_synth.to_csv(f'../data/synthetic_prediction_{props[prop_ind]}_pnn.csv')
-# model.save(f'models/combined/pnn_{props[prop_ind]}_09_27_23.h5')
+CI_pnn_synth.to_csv(f'../data/synthetic_prediction_{props[prop_ind]}_pnn.csv')
+# model.save(f'../models/combined/pnn_{props[prop_ind]}_09_27_23.h5', save_traces=False)
