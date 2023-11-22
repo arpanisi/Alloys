@@ -8,6 +8,16 @@ sns.set_context('talk')
 lbe = LabelEncoder()
 std = StandardScaler()
 
+elem_comp, synth_data, y = load_oxidation_data()
+fig = plt.figure(figsize=(8, 6))
+
+reducer = UMAP(n_components=2, min_dist=0.1, random_state=42)
+embedding = pd.DataFrame(reducer.fit_transform(elem_comp), index=elem_comp.index, columns=['x', 'y'])
+embedding['color'] = y
+
+
+
+
 props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
 for prop in props:
     X, y, Z = load_data(col=prop)
@@ -70,14 +80,4 @@ plt.savefig('../figs/synthetic_chem_comp.png', bbox_inches='tight')
 
 # _, _, Z = load_data(col=props[0])
 #
-# for col in Z.columns:
-#     # fig = plt.figure(figsize=(14, 12))
-#     value_counts = Z[col].value_counts()
-#     colors = sns.color_palette('Set1', len(value_counts))
-#     value_counts.plot(kind='bar', color=colors)
-#     plt.title(col)
-#     # plt.xticks(rotation=90)
-#     if '/' in col:
-#         col = col.replace('/', '')
-#     plt.savefig('figs/' + col +'.png', bbox_inches='tight')
 

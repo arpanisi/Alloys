@@ -48,7 +48,6 @@ y_pred = model(X_test.values)
 # Extract mean and standard deviation from the output distribution
 mean_predictions = y_pred.mean().numpy()
 stddev_predictions = y_pred.stddev().numpy()
-print('')
 
 lower_limit = mean_predictions - 1.96 * stddev_predictions
 upper_limit = mean_predictions + 1.96 * stddev_predictions
@@ -60,7 +59,7 @@ plt.fill_between(np.arange(len(y_test)),
                  lower_limit.flatten(), upper_limit.flatten(),
                  color='r', alpha=0.3, label="95% Confidence Interval")
 plt.plot(mean_predictions)
-plt.title('Bayesian Regression')
+plt.title('Oxidation State')
 plt.savefig(f'../figs/bnn_regression_oxidation.png', bbox_inches='tight', dpi=300)
 plt.show()
 
@@ -96,7 +95,7 @@ plt.fill_between(np.arange(len(y_test)),
                  lower_limit.flatten(), upper_limit.flatten(),
                  color='r', alpha=0.3, label="95% Confidence Interval")
 plt.plot(mean_predictions)
-plt.title('Probabilistic Regression')
+plt.title('Oxidation State')
 plt.savefig(f'../figs/pnn_regression_oxidation.png', bbox_inches='tight', dpi=300)
 plt.show()
 

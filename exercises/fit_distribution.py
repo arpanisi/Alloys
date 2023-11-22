@@ -11,7 +11,7 @@ from sklearn.metrics import r2_score
 import tensorflow_probability as tfp
 
 props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
-prop_ind = 0
+prop_ind = 1
 X, y, Z = load_data(col=props[prop_ind])
 
 top_feat = 10
