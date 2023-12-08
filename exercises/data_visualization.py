@@ -3,29 +3,27 @@ from umap import UMAP
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from pca import pca
 
 sns.set_context('talk')
 lbe = LabelEncoder()
 std = StandardScaler()
 
+Skewness = []
 elem_comp, synth_data, y = load_oxidation_data()
-fig = plt.figure(figsize=(8, 6))
+Skewness.append(elem_comp.skew())
 
-reducer = UMAP(n_components=2, min_dist=0.1, random_state=42)
-embedding = pd.DataFrame(reducer.fit_transform(elem_comp), index=elem_comp.index, columns=['x', 'y'])
-embedding['color'] = y
-
-
-
+reducer = pca(n_components=0.95)
+res = reducer.fit_transform(elem_comp)
 
 props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)']
 for prop in props:
     X, y, Z = load_data(col=prop)
-
+    Skewness.append(X.skew())
     # Set the desired figure size (width, height) in inches
     fig = plt.figure(figsize=(8, 6))
 
-    reducer = UMAP(n_components=2, min_dist=0.1, random_state=42)
+    reducer = UMAP(n_components=2, min_dist=0.5, random_state=42)
     embedding = pd.DataFrame(reducer.fit_transform(X), index=X.index, columns=['x', 'y'])
     embedding['color'] = y
 
@@ -77,7 +75,3 @@ fig = plt.figure(figsize=(8, 6))
 scatter = plt.scatter(embedding['x'], embedding['y'], cmap='viridis', s=20)
 plt.title('Synthetic Data Chemical Composition')
 plt.savefig('../figs/synthetic_chem_comp.png', bbox_inches='tight')
-
-# _, _, Z = load_data(col=props[0])
-#
-
