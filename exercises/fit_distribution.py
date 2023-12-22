@@ -14,7 +14,7 @@ from datetime import datetime
 
 props = ['YieldStr(MPa)', 'Ductility (%)', 'Hardness (HV)',
          'Oxidation (mass change_per_hr)']
-prop_ind = 0
+prop_ind = 2
 if prop_ind == 3:
     X, Z, y = load_oxidation_data()
 else:
