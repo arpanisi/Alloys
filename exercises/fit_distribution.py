@@ -4,9 +4,9 @@ import pandas as pd
 import seaborn as sns
 sns.set_context('talk')
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from exercises.data_preparation import load_data, load_oxidation_data
+from hea_utils.data_preparation import load_data, load_oxidation_data
 from sklearn.model_selection import train_test_split
-from exercises.regression_models import tf_prob_regression_model, tf_bnn_regression_model, \
+from hea_utils.regression_models import tf_prob_regression_model, tf_bnn_regression_model, \
     tf_bnn_regression_vi, tf_regression_model
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 import tensorflow_probability as tfp

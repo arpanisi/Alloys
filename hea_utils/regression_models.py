@@ -1,4 +1,4 @@
-import numpy as np, pandas as pd
+import numpy as np
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
 from sklearn.svm import SVR, NuSVR, LinearSVR
 from sklearn.tree import DecisionTreeRegressor
@@ -14,9 +14,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.ensemble import VotingRegressor
 from sklearn.linear_model import TheilSenRegressor
 from sklearn.ensemble import ExtraTreesRegressor
-from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
-from sklearn.model_selection import KFold
-from sklearn.gaussian_process.kernels import RBF
+import tf_keras as keras
 
 # Initializing regression models
 linear_reg = LinearRegression()
@@ -77,7 +75,7 @@ def tf_regression_model(input_shape):
 def posterior_mean_field(kernel_size, bias_size=0, dtype=None):
   n = kernel_size + bias_size
   c = np.log(np.expm1(1.))
-  return tf.keras.Sequential([
+  return keras.Sequential([
       tfp.layers.VariableLayer(2 * n, dtype=dtype),
       tfp.layers.DistributionLambda(lambda t: tfp.distributions.Independent(
           tfp.distributions.Normal(loc=t[..., :n],
@@ -87,7 +85,7 @@ def posterior_mean_field(kernel_size, bias_size=0, dtype=None):
 
 def prior_trainable(kernel_size, bias_size=0, dtype=None):
   n = kernel_size + bias_size
-  return tf.keras.Sequential([
+  return keras.Sequential([
       tfp.layers.VariableLayer(n, dtype=dtype),
       tfp.layers.DistributionLambda(lambda t: tfp.distributions.Independent(
           tfp.distributions.Normal(loc=t, scale=1),
@@ -97,11 +95,11 @@ def prior_trainable(kernel_size, bias_size=0, dtype=None):
 
 def tf_bnn_regression_model(input_data_size, input_shape):
 
-    model = tf.keras.Sequential([
-        tf.keras.layers.Input(shape=input_shape),
-        tf.keras.layers.Dense(20, activation='relu'),
-        tf.keras.layers.Dense(20, activation='relu'),
-        tf.keras.layers.Dense(20, activation='relu'),
+    model = keras.Sequential([      # <-- keras.Sequential from tf_keras
+        keras.layers.Input(shape=input_shape),
+        keras.layers.Dense(20, activation='relu'),
+        keras.layers.Dense(20, activation='relu'),
+        keras.layers.Dense(20, activation='relu'),
         tfp.layers.DenseVariational(  # Probabilistic dense layer
             units=1 + 1,  # Output dimension
             make_posterior_fn=posterior_mean_field,
@@ -119,14 +117,14 @@ def tf_bnn_regression_model(input_data_size, input_shape):
 
 def tf_bnn_regression_vi(input_data_size, input_shape):
 
-    model = tf.keras.Sequential([
-        tf.keras.layers.Input(shape=input_shape),
+    model = keras.Sequential([
+        keras.layers.Input(shape=input_shape),
         tfp.layers.DenseFlipout(20, activation='relu'),
-        tf.keras.layers.Activation('relu'),
+        keras.layers.Activation('relu'),
         tfp.layers.DenseFlipout(20, activation='relu'),
-        tf.keras.layers.Activation('relu'),
+        keras.layers.Activation('relu'),
         tfp.layers.DenseFlipout(20, activation='relu'),
-        tf.keras.layers.Activation('relu'),
+        keras.layers.Activation('relu'),
         tfp.layers.DenseVariational(  # Probabilistic dense layer
             units=1 + 1,  # Output dimension
             make_posterior_fn=posterior_mean_field,
@@ -144,11 +142,11 @@ def tf_bnn_regression_vi(input_data_size, input_shape):
 
 
 def tf_prob_regression_model(input_shape):
-    model = tf.keras.Sequential([
-        tf.keras.layers.Input(shape=input_shape),
-        tf.keras.layers.Dense(20, activation='relu'),
-        tf.keras.layers.Dense(20, activation='relu'),
-        tf.keras.layers.Dense(2),  # Two outputs for mean and standard deviation
+    model = keras.Sequential([
+        keras.layers.Input(shape=input_shape),
+        keras.layers.Dense(20, activation='relu'),
+        keras.layers.Dense(20, activation='relu'),
+        keras.layers.Dense(2),  # Two outputs for mean and standard deviation
         tfp.layers.DistributionLambda(lambda t: tfp.distributions.StudentT(df=5, loc=t[..., :1],
                             scale=1e-3 + tf.math.softplus(t[..., 1:]))),
     ])

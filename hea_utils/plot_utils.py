@@ -5,7 +5,7 @@ sns.set_context('talk')
 import numpy as np
 
 
-def plot_limits(observation, mean_predictions, lower_limit, upper_limit,
+def plot_limits(observation, mean_predictions, lower_limit, upper_limit, model_name: str = None,
                 prop_name: str = None, save_path: str = None, fold_num: int = None):
 
     plt.scatter(np.arange(len(observation)), observation)
@@ -16,8 +16,8 @@ def plot_limits(observation, mean_predictions, lower_limit, upper_limit,
     plt.title(prop_name)
 
     if fold_num is not None:
-        filename = f'{save_path}/{prop_name}_{fold_num}.png'
+        filename = f'{save_path}/{prop_name}_{model_name}_{fold_num}.png'
     else:
-        filename = f'{save_path}/{prop_name}.png'
+        filename = f'{save_path}/{prop_name}_{model_name}.png'
     plt.savefig(filename, bbox_inches='tight', dpi=300)
     plt.close()
