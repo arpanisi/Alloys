@@ -1,0 +1,10 @@
+chemparse==0.3.2
+matplotlib==3.9.4
+numpy==1.26.4
+pandas==2.3.2
+pca==2.10.0
+scikit_learn==1.6.1
+seaborn==0.13.2
+tensorflow==2.18.1
+tensorflow_probability==0.24.0
+tqdm==4.67.1
