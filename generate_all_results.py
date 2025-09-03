@@ -15,7 +15,6 @@ for prop_ind, prop in enumerate(props):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3,
                                                         random_state=42)
 
-
     # Running regular regression models and generating tabular report
     save_dir_path = 'results/results_11_1_2025/regular_regressions'
     run_regular_regression_models(X, y, prop_name=prop, save_path=save_dir_path)
@@ -33,12 +32,35 @@ for prop_ind, prop in enumerate(props):
                                    fig_dir_path=fig_dir_path)
 
 
+for prop_ind, prop in enumerate(props):
+
+    X, y, _ = load_training_data(prop_ind, prop)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3,
+                                                        random_state=42)
+
+    # Running regular regression models and generating tabular report
+    save_dir_path = 'results/results_11_1_2025/comp_only/regular_regressions'
+    run_regular_regression_models(X, y, prop_name=prop, save_path=save_dir_path)
+
+    # Running regular regression models and generating tabular report
+    save_dir_path = 'results/results_11_1_2025/comp_only/ensemble_regressions'
+    fig_dir_path = 'figs/figs_11_1_2025/uncertainty_plots/comp_only/ensemble_regressions'
+    run_ensemble_regression_models(X, y, prop_name=prop, save_path=save_dir_path,
+                                   fig_dir_path=fig_dir_path)
+
+    # Running probabilistic regression models and generating tabular report
+    save_dir_path = 'results/results_11_1_2025/comp_only/probabilistic_regressions'
+    fig_dir_path = 'figs/figs_11_1_2025/uncertainty_plots/comp_only/probabilistic_regressions'
+    run_probabilistic_regression_models(X, y, prop_name=prop, save_path=save_dir_path,
+                                   fig_dir_path=fig_dir_path)
+
 # One Loop optimization
 from hea_utils.regression_models import tf_bnn_regression_model
 import pandas as pd
 import numpy as np
 from hea_utils.pareto_optimization import is_dominated
 synth_props = {}
+
 for prop_ind, prop in enumerate(props):
 
     X, y, Z = load_training_data(prop_ind, prop)
