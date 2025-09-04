@@ -1,15 +1,18 @@
 from .regression_models import *
+from .regression_utils import *
 from .plot_utils import plot_limits
 from typing import Tuple, Optional
 import pandas as pd
 from sklearn.model_selection import KFold
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
+import joblib
+
 classical_regression_models = [linear_reg, ridge_reg, lasso_reg, elastic_net_reg,
-                     svr_reg, nu_svr_reg, linear_svr_reg, decision_tree_reg,
-                     knn_reg, kernel_ridge_reg,
-                     mlp_reg, passive_aggressive_reg, ransac_reg, huber_reg, tweedie_reg,
-                     poisson_reg, theil_sen_reg, tf_regression_model]
+                               svr_reg, nu_svr_reg, linear_svr_reg, decision_tree_reg,
+                               knn_reg, kernel_ridge_reg,
+                               mlp_reg, passive_aggressive_reg, ransac_reg, huber_reg, tweedie_reg,
+                               poisson_reg, theil_sen_reg, tf_regression_model]
 
 ensemble_regression_models = [random_forest_reg, gradient_boosting_reg,
                               ada_boost_reg, bagging_reg, voting_reg, extra_trees_reg,
@@ -20,24 +23,24 @@ probabilistic_regression_models = [gaussian_process_reg, tf_bnn_regression_model
                                    tf_bnn_regression_vi, tf_prob_regression_model]
 
 ensemble_regression_names = ["Random Forest Regression",
-               "Gradient Boosting Regression", "AdaBoost Regression",
-               "Bagging Regression", "Voting Regression", "Extra Trees Regression",
-               "Histogram-based GBR", ]
+                             "Gradient Boosting Regression", "AdaBoost Regression",
+                             "Bagging Regression", "Voting Regression", "Extra Trees Regression",
+                             "Histogram-based GBR", ]
 
 classical_regression_names = ["Linear Regression", "Ridge Regression", "Lasso Regression",
-               "Elastic Net Regression", "SVR", "NuSVR", "Linear SVR",
-               "Decision Tree Regression", "K-Nearest Neighbors Regression",
-               "Kernel Ridge Regression",
-               "MLP Regression", "Passive Aggressive Regression", "RANSAC Regression",
-               "Huber Regression", "Tweedie Regression", "Poisson Regression",
-               "Theil-Sen Regression", "Deep Neural Network Regression",]
+                              "Elastic Net Regression", "SVR", "NuSVR", "Linear SVR",
+                              "Decision Tree Regression", "K-Nearest Neighbors Regression",
+                              "Kernel Ridge Regression",
+                              "MLP Regression", "Passive Aggressive Regression", "RANSAC Regression",
+                              "Huber Regression", "Tweedie Regression", "Poisson Regression",
+                              "Theil-Sen Regression", "Deep Neural Network Regression", ]
 
 probabilistic_regression_names = ["Gaussian Process Regression", "BNN-Variational Regression",
-               "BNN-Flipout Regression", "PNN-StudentT Regression"]
+                                  "BNN-Flipout Regression", "PNN-StudentT Regression"]
 
 
 def run_regular_regression_models(
-    X, y, prop_name: str, num_folds: int = 5, save_path: str = None
+        X, y, prop_name: str, num_folds: int = 5, save_path: str = None, model_save_path: str = None,
 ):
     """
     Evaluate multiple regression models with K-Fold cross-validation and
@@ -49,6 +52,7 @@ def run_regular_regression_models(
         prop_name (str): Name of the property being predicted (used in filename).
         num_folds (int): Number of CV folds.
         save_path (str or None): Optional path to save CSV summary.
+        model_save_path(str or None): Optional path to save model weights.
 
     Returns:
         pd.DataFrame: Summary table of metrics per model.
@@ -59,11 +63,12 @@ def run_regular_regression_models(
     # Initialize KFold
     kf = KFold(n_splits=num_folds, shuffle=True, random_state=42)
 
+    # Save y_max for rescaling
+    y_max = y.max()
+    y_scaled = y / y_max
+
     # Storage for results
-    results = {name: {"R2_train": [], "R2_test": [],
-                      "MAE_train": [], "MAE_test": [],
-                      "MSE_train": [], "MSE_test": []}
-               for name in classical_regression_names}
+    results = regression_metrics(classical_regression_models)
 
     # Generating Input Shape for Tensorflow model
     input_shape = X.shape[1:]
@@ -72,7 +77,7 @@ def run_regular_regression_models(
     for fold_num, (train_index, test_index) in enumerate(kf.split(X), start=1):
         print(f"\n[INFO] Fold {fold_num}/{num_folds}")
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-        y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+        y_train, y_test = y_scaled.iloc[train_index], y_scaled.iloc[test_index]
 
         iterator = zip(classical_regression_names, classical_regression_models)
         for model_name, model in iterator:
@@ -87,41 +92,37 @@ def run_regular_regression_models(
             y_pred_train = model.predict(X_train)
             y_pred_test = model.predict(X_test)
 
+            # Rescale predictions back
+            y_pred_train_rescaled = y_pred_train * y_max
+            y_pred_test_rescaled = y_pred_test * y_max
+            y_train_rescaled = y_train * y_max
+            y_test_rescaled = y_test * y_max
+
+            if model_name == "Deep Neural Network Regression":
+                model_filename = f"{model_save_path}/{model_name.replace(' ', '_')}_{prop_name}_{fold_num}.h5"
+                model.save(model_filename)
+            else:
+                model_filename = f"{model_save_path}/{model_name.replace(' ', '_')}_{prop_name}_{fold_num}.joblib"
+                joblib.dump(model, model_filename)
+
             # Collect metrics
-            results[model_name]["R2_train"].append(r2_score(y_train, y_pred_train))
-            results[model_name]["R2_test"].append(r2_score(y_test, y_pred_test))
-            results[model_name]["MAE_train"].append(mean_absolute_error(y_train, y_pred_train))
-            results[model_name]["MAE_test"].append(mean_absolute_error(y_test, y_pred_test))
-            results[model_name]["MSE_train"].append(mean_squared_error(y_train, y_pred_train))
-            results[model_name]["MSE_test"].append(mean_squared_error(y_test, y_pred_test))
+            reg_metrics = compute_regression_metrics(y_train_rescaled, y_pred_train_rescaled,
+                                                     y_test_rescaled, y_pred_test_rescaled)
+            # update results
+            for key, value in reg_metrics.items():
+                results[model_name][key].append(value)
 
     print("\n[INFO] Cross-validation complete. Summarizing results...")
 
     # Summarize: mean ± std across folds
-    summary_rows = []
-    for model_name, metrics in results.items():
-        row = {"Model": model_name}
-        for metric, values in metrics.items():
-            row[f"{metric}_mean"] = np.mean(values)
-            row[f"{metric}_std"] = np.std(values)
-        summary_rows.append(row)
-
-    summary_df = pd.DataFrame(summary_rows).set_index("Model")
-
-    # Save CSV if requested
-    if save_path:
-        filename = f"{save_path}/{prop_name}_cv_results.csv"
-        summary_df.to_csv(filename)
-        print(f"[INFO] Results saved to {filename}")
-
+    summarize_cv_results(results, prop_name, save_path=save_path)
     print(f"[INFO] Summary complete for {prop_name}.")
 
 
 def run_ensemble_regression_models(
-    X, y, prop_name: str, num_folds: int = 5, save_path: str = None,
-    fig_dir_path: str = None
+        X, y, prop_name: str, num_folds: int = 5, save_path: str = None,
+        fig_dir_path: str = None, model_save_path: str = None,
 ):
-
     """
         Evaluate multiple regression models with K-Fold cross-validation and
         return a summary of metrics.
@@ -133,6 +134,7 @@ def run_ensemble_regression_models(
             num_folds (int): Number of CV folds.
             save_path (str or None): Optional path to save CSV summary.
             fig_dir_path (str or None): Optional path to save figures.
+            model_save_path (str or None): Optional path to save models.
 
         """
     print(f"\n[INFO] Running CV for property: {prop_name} with {num_folds} folds")
@@ -141,21 +143,18 @@ def run_ensemble_regression_models(
     # Initialize KFold
     kf = KFold(n_splits=num_folds, shuffle=True, random_state=42)
 
+    # Save y_max for rescaling
+    y_max = y.max()
+    y_scaled = y / y_max
+
     # Storage for results
-    results = {name: {"R2_train": [], "R2_test": [],
-                      "MAE_train": [], "MAE_test": [],
-                      "MSE_train": [], "MSE_test": [],
-                      "PICP_train": [], "PICP_test": [],
-                      "MPIW_train": [], "MPIW_test": [],
-                      "STD_train_mean": [], "STD_test_mean": [],
-                      }
-               for name in ensemble_regression_names}
+    results = regression_metrics(ensemble_regression_names, prob_model=True)
 
     # Iterate through each fold
     for fold_num, (train_index, test_index) in enumerate(kf.split(X), start=1):
         print(f"\n[INFO] Fold {fold_num}/{num_folds}")
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-        y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+        y_train, y_test = y_scaled.iloc[train_index], y_scaled.iloc[test_index]
 
         iterator = zip(ensemble_regression_names, ensemble_regression_models)
         for model_name, model in iterator:
@@ -171,19 +170,29 @@ def run_ensemble_regression_models(
             y_pred_train = model.predict(X_train)
             y_pred_test = model.predict(X_test)
 
+            # Rescale predictions back
+            y_pred_train_rescaled = y_pred_train * y_max
+            y_pred_test_rescaled = y_pred_test * y_max
+            y_train_rescaled = y_train * y_max
+            y_test_rescaled = y_test * y_max
+
+            # Save model
+            model_filename = f"{model_save_path}/{model_name.replace(' ', '_')}_{prop_name}_{fold_num}.joblib"
+            joblib.dump(model, model_filename)
+
             # uncertainty-like metrics (only if std is available)
             picp_tr, mpiw_tr, avgstd_tr, lower_tr, upper_tr = (
                 interval_metrics(y_train.values, mean_tr, std_tr, alpha=1.96))
             picp_te, mpiw_te, avgstd_te, lower_te, upper_te = (
                 interval_metrics(y_test.values, mean_te, std_te, alpha=1.96))
 
+            # Metrics (MAE, MSE rescaled, R² unaffected by scaling)
             # Collect metrics
-            results[model_name]["R2_train"].append(r2_score(y_train, y_pred_train))
-            results[model_name]["R2_test"].append(r2_score(y_test, y_pred_test))
-            results[model_name]["MAE_train"].append(mean_absolute_error(y_train, y_pred_train))
-            results[model_name]["MAE_test"].append(mean_absolute_error(y_test, y_pred_test))
-            results[model_name]["MSE_train"].append(mean_squared_error(y_train, y_pred_train))
-            results[model_name]["MSE_test"].append(mean_squared_error(y_test, y_pred_test))
+            reg_metrics = compute_regression_metrics(y_train_rescaled, y_pred_train_rescaled,
+                                                     y_test_rescaled, y_pred_test_rescaled)
+            # update results
+            for key, value in reg_metrics.items():
+                results[model_name][key].append(value)
 
             # Collect Uncertainty-aware metrics
             results[model_name]["PICP_train"].append(picp_tr)
@@ -197,34 +206,17 @@ def run_ensemble_regression_models(
                 plot_limits(y_test, mean_te, lower_te, upper_te, model_name=model_name,
                             prop_name=prop_name, save_path=fig_dir_path, fold_num=fold_num)
 
-
     print("\n[INFO] Cross-validation complete. Summarizing results...")
 
     # Summarize: mean ± std across folds
-    summary_rows = []
-    for model_name, metrics in results.items():
-        row = {"Model": model_name}
-        for metric, values in metrics.items():
-            row[f"{metric}_mean"] = np.mean(values)
-            row[f"{metric}_std"] = np.std(values)
-        summary_rows.append(row)
-
-    summary_df = pd.DataFrame(summary_rows).set_index("Model")
-
-    # Save CSV if requested
-    if save_path:
-        filename = f"{save_path}/{prop_name}_cv_results.csv"
-        summary_df.to_csv(filename)
-        print(f"[INFO] Results saved to {filename}")
-
+    summarize_cv_results(results, prop_name, save_path=save_path)
     print(f"[INFO] Summary complete for {prop_name}.")
 
 
 def run_probabilistic_regression_models(
-    X, y, prop_name: str, num_folds: int = 5, save_path: str = None,
-    fig_dir_path: str = None
+        X, y, prop_name: str, num_folds: int = 5, save_path: str = None,
+        fig_dir_path: str = None, model_save_path: str = None,
 ):
-
     """
         Evaluate multiple regression models with K-Fold cross-validation and
         return a summary of metrics.
@@ -236,7 +228,7 @@ def run_probabilistic_regression_models(
             num_folds (int): Number of CV folds.
             save_path (str or None): Optional path to save CSV summary.
             fig_dir_path (str or None): Optional path to save figures.
-
+            model_save_path (str or None): Optional path to save models.
         """
     print(f"\n[INFO] Running CV for property: {prop_name} with {num_folds} folds")
     print(f"[INFO] Total models: {len(probabilistic_regression_models)}")
@@ -244,24 +236,21 @@ def run_probabilistic_regression_models(
     # Initialize KFold
     kf = KFold(n_splits=num_folds, shuffle=True, random_state=42)
 
+    # Save y_max for rescaling
+    y_max = y.max()
+    y_scaled = y / y_max
+
     # Generating Input Shape for Tensorflow model
     input_shape = X.shape[1:]
 
     # Storage for results
-    results = {name: {"R2_train": [], "R2_test": [],
-                      "MAE_train": [], "MAE_test": [],
-                      "MSE_train": [], "MSE_test": [],
-                      "PICP_train": [], "PICP_test": [],
-                      "MPIW_train": [], "MPIW_test": [],
-                      "STD_train_mean": [], "STD_test_mean": [],
-                      }
-               for name in probabilistic_regression_names}
+    results = regression_metrics(probabilistic_regression_names, prob_model=True)
 
     # Iterate through each fold
     for fold_num, (train_index, test_index) in enumerate(kf.split(X), start=1):
         print(f"\n[INFO] Fold {fold_num}/{num_folds}")
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-        y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+        y_train, y_test = y_scaled.iloc[train_index], y_scaled.iloc[test_index]
 
         # Generating Input Size for BNN models
         input_size = len(X_train)
@@ -289,13 +278,25 @@ def run_probabilistic_regression_models(
             picp_te, mpiw_te, avgstd_te, lower_te, upper_te = (
                 interval_metrics(y_test.values, mean_te, std_te, alpha=1.96))
 
+            if model_name == "Gaussian Process Regression":
+                model_filename = f"{model_save_path}/{model_name.replace(' ', '_')}_{prop_name}_{fold_num}.joblib"
+                joblib.dump(model, model_filename)
+            else:
+                model_filename = f"{model_save_path}/{model_name.replace(' ', '_')}_{prop_name}_{fold_num}.h5"
+                model.save_weights(model_filename)
+
+            # Rescale predictions back
+            y_pred_train_rescaled = mean_tr * y_max
+            y_pred_test_rescaled = mean_te * y_max
+            y_train_rescaled = y_train * y_max
+            y_test_rescaled = y_test * y_max
+
             # Collect metrics
-            results[model_name]["R2_train"].append(r2_score(y_train, mean_tr))
-            results[model_name]["R2_test"].append(r2_score(y_test, mean_te))
-            results[model_name]["MAE_train"].append(mean_absolute_error(y_train, mean_tr))
-            results[model_name]["MAE_test"].append(mean_absolute_error(y_test, mean_te))
-            results[model_name]["MSE_train"].append(mean_squared_error(y_train, mean_tr))
-            results[model_name]["MSE_test"].append(mean_squared_error(y_test, mean_te))
+            reg_metrics = compute_regression_metrics(y_train_rescaled, y_pred_train_rescaled,
+                                                     y_test_rescaled, y_pred_test_rescaled)
+            # update results
+            for key, value in reg_metrics.items():
+                results[model_name][key].append(value)
 
             # Collect Uncertainty-aware metrics
             results[model_name]["PICP_train"].append(picp_tr)
@@ -309,26 +310,10 @@ def run_probabilistic_regression_models(
                 plot_limits(y_test, mean_te, lower_te, upper_te, model_name=model_name,
                             prop_name=prop_name, save_path=fig_dir_path, fold_num=fold_num)
 
-
     print("\n[INFO] Cross-validation complete. Summarizing results...")
 
     # Summarize: mean ± std across folds
-    summary_rows = []
-    for model_name, metrics in results.items():
-        row = {"Model": model_name}
-        for metric, values in metrics.items():
-            row[f"{metric}_mean"] = np.mean(values)
-            row[f"{metric}_std"] = np.std(values)
-        summary_rows.append(row)
-
-    summary_df = pd.DataFrame(summary_rows).set_index("Model")
-
-    # Save CSV if requested
-    if save_path:
-        filename = f"{save_path}/{prop_name}_cv_results.csv"
-        summary_df.to_csv(filename)
-        print(f"[INFO] Results saved to {filename}")
-
+    summarize_cv_results(results, prop_name, save_path=save_path)
     print(f"[INFO] Summary complete for {prop_name}.")
 
 
